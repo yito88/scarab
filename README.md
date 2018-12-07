@@ -3,7 +3,7 @@
 A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
 
 ## Current status
-- Support only `get!` and `put!` a record
+- Support only `get!` and `put!`
 
 ## Install
 
@@ -66,7 +66,7 @@ Add the following dependency to your `project.clj` file:
 - You can specify a consistency level to `get!`/`put!` a record
   ```clojure
   (st/get! storage keyspace table keys :sequential)
-  (st/put! storage keyspace table keys :eventual)
+  (st/put! storage keyspace table keys values :eventual)
   ```
   - You can see the detail of consistency level in [Scalar DB](https://scalar-labs.github.io/scalardb/javadoc/com/scalar/database/api/Consistency.html)
 
