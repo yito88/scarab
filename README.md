@@ -2,6 +2,16 @@
 
 A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
 
+## Current status
+- Support only `get!` and `put!` a record
+
+## Install
+
+Add the following dependency to your `project.clj` file:
+```clojure
+[scarab "1.0-alpha"]
+```
+
 ## Usage
 
 - You need to create a keyspace and a table for Scalar DB before use
@@ -25,6 +35,18 @@ A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
       (st/get! storage "keyspace" "table" keys))
 ```
 
+- First, you need to set up a storage service with properties
+  - If you give an empty map as properties, it will be connected to a local server.
+  ```clojure
+  (st/setup-storage {})
+  ```
+
+- You can operate records by `get!` and `put!` with storage service
+  ```clojure
+  (st/get! storage keyspace table keys)
+  (st/put! storage keyspace table keys values)
+  ```
+
 - Columns are represented as a map
   ```clojure
     {:column-name1 {:value val1 :type :value-type1}
@@ -40,6 +62,13 @@ A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
       :ck2 {:value "22" :type :int}}])
   ```
   - The first example has only a partition key
+
+- You can specify a consistency level to `get!`/`put!` a record
+  ```clojure
+  (st/get! storage keyspace table keys :sequential)
+  (st/put! storage keyspace table keys :eventual)
+  ```
+  - You can see the detail of consistency level in [Scalar DB](https://scalar-labs.github.io/scalardb/javadoc/com/scalar/database/api/Consistency.html)
 
 ### Transaction
 
@@ -68,6 +97,27 @@ A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
         (t/put! tx keyspace table keys new-val))
       (t/commit! tx))
 ```
+
+- First, you need to set up a transaction service with properties
+  ```clojure
+  (t/setup-transaction properties)
+  ```
+
+- Before operating records, you need to `start!` a new transaction
+  ```clojure
+  (t/start! tx)
+  ```
+
+- After operating records, you should `commit!` the transaction to persist updates
+  ```clojure
+  (t/commit! tx)
+  ```
+
+- It is the same as `storage` how to operating records
+  ```clojure
+  (t/get! tx keyspace table keys)
+  (t/put! tx keyspace table keys values)
+  ```
 
 ## License
 
