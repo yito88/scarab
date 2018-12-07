@@ -4,6 +4,9 @@ A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
 
 ## Usage
 
+- You need to create a keyspace and a table for Scalar DB before use
+  - You can create them easily with [Schema Tools](https://github.com/scalar-labs/scalardb/tree/master/tools/schema)
+
 ### Storage (non transactional operation)
 
 ```clojure
@@ -65,10 +68,6 @@ A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
         (t/put! tx keyspace table keys new-val))
       (t/commit! tx))
 ```
-
-- You need to create a keyspace and a table before execution
-  - You can create them easily with [Schema Tools](https://github.com/scalar-labs/scalardb/tree/master/tools/schema)
-
 
 ## License
 
