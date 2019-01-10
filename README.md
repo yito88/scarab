@@ -1,3 +1,5 @@
+[![Clojars Project](https://img.shields.io/clojars/v/scarab.svg)](https://clojars.org/scarab)
+
 # Scarab
 
 A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
