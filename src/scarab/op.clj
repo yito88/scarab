@@ -1,6 +1,7 @@
 (ns scarab.op
   (:require [scarab.record :as r])
   (:import (com.scalar.database.api Consistency
+                                    Delete
                                     Get
                                     Isolation
                                     Put
@@ -23,6 +24,18 @@
    (let [pk  (r/make-keys (first keys))
          ck  (r/make-keys (second keys))]
      (-> (Get. pk ck)
+         (.forNamespace namespace)
+         (.forTable table)
+         (.withConsistency (consistency-level cl))))))
+
+(defn prepare-delete
+  ([namespace table keys]
+   (prepare-delete namespace table keys :linearizable))
+
+  ([namespace table keys cl]
+   (let [pk  (r/make-keys (first keys))
+         ck  (r/make-keys (second keys))]
+     (-> (Delete. pk ck)
          (.forNamespace namespace)
          (.forTable table)
          (.withConsistency (consistency-level cl))))))

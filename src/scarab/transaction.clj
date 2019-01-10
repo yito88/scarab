@@ -33,6 +33,8 @@
   (commit! [this])
   (get! [this namespace table keys]
         [this namespace table keys cl])
+  (delete! [this namespace table keys]
+           [this namespace table keys cl])
   (put! [this namespace table keys values]
         [this namespace table keys values cl]))
 
@@ -51,9 +53,15 @@
   (get! [this namespace table keys cl]
     (let [opt-result (.get (deref (:tx this))
                            (op/prepare-get namespace table keys cl))]
-      (if-let [result (.get opt-result)]
-        (r/get-record result true)
+      (if (.isPresent opt-result)
+        (r/get-record (.get opt-result) true)
         nil)))
+
+  (delete! [this namespace table keys]
+    (delete! this namespace table keys :linearizable))
+
+  (delete! [this namespace table keys cl]
+    (.delete (deref (:tx this)) (op/prepare-delete namespace table keys cl)))
 
   (put! [this namespace table keys values]
     (put! this namespace table keys values :linearizable))

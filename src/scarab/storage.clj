@@ -26,6 +26,8 @@
 (defprotocol StorageProto
   (get! [this namespace table keys]
         [this namespace table keys cl])
+  (delete! [this namespace table keys]
+           [this namespace table keys cl])
   (put! [this namespace table keys values]
         [this namespace table keys values cl]))
 
@@ -37,9 +39,16 @@
   (get! [this namespace table keys cl]
     (let [opt-result (.get (:storage this)
                            (op/prepare-get namespace table keys cl))]
-      (if-let [result (.get opt-result)]
-        (r/get-record result true)
+      (if (.isPresent opt-result)
+        (r/get-record (.get opt-result) true)
         nil)))
+
+  (delete! [this namespace table keys]
+    (delete! this namespace table keys :eventual))
+
+  (delete! [this namespace table keys cl]
+    (.delete (:storage this)
+          (op/prepare-delete namespace table keys cl)))
 
   (put! [this namespace table keys values]
     (put! this namespace table keys values :eventual))

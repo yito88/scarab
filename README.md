@@ -3,7 +3,7 @@
 A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
 
 ## Current status
-- Support only `get!` and `put!`
+- Support only `get!`, `put!` and `delete!`
 
 ## Install
 
@@ -41,10 +41,11 @@ Add the following dependency to your `project.clj` file:
   (st/setup-storage {})
   ```
 
-- You can operate records by `get!` and `put!` with storage service
+- You can operate records by `get!`, `put!` and `delete` with storage service
   ```clojure
   (st/get! storage keyspace table keys)
   (st/put! storage keyspace table keys values)
+  (st/delete! storage keyspace table keys)
   ```
 
 - Columns are represented as a map
@@ -63,10 +64,11 @@ Add the following dependency to your `project.clj` file:
   ```
   - The first example has only a partition key
 
-- You can specify a consistency level to `get!`/`put!` a record
+- You can specify a consistency level to `get!`/`put!`/`delete!` a record
   ```clojure
   (st/get! storage keyspace table keys :sequential)
   (st/put! storage keyspace table keys values :eventual)
+  (st/delete! storage keyspace table keys :eventual)
   ```
   - You can see the detail of consistency level in [Scalar DB](https://scalar-labs.github.io/scalardb/javadoc/com/scalar/database/api/Consistency.html)
 
@@ -117,6 +119,7 @@ Add the following dependency to your `project.clj` file:
   ```clojure
   (t/get! tx keyspace table keys)
   (t/put! tx keyspace table keys values)
+  (t/delete! tx keyspace table keys)
   ```
 
 ## License
