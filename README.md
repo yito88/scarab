@@ -9,7 +9,7 @@ A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
 
 Add the following dependency to your `project.clj` file:
 ```clojure
-[scarab "1.0-alpha"]
+[scarab "1.0-alpha2"]
 ```
 
 ## Usage
