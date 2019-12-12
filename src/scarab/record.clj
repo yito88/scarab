@@ -1,5 +1,4 @@
 (ns scarab.record
-  (:require [scarab.core])
   (:import (com.scalar.database.io BigIntValue
                                    BlobValue
                                    BooleanValue
@@ -18,27 +17,31 @@
    :int     (fn [n v] (IntValue. n v))
    :text    (fn [n v] (TextValue. n v))})
 
+(defn valid-value?
+  [value]
+  (and (= (count value) 2) (keyword? (second value))))
+
 (defn make-value
-  [c v]
-  (let [name# (name c)
-        {:keys [value type]} v]
-    ((get types type) name# value)))
+  [column value]
+  (let [name# (name column)
+        [v t] value]
+    ((t types) name# v)))
 
 (defn make-values
-  "convert to a values' vector from {:c1 {:value v1 :type :t1} :c2 {:value v2 :type :t2}} format"
+  "convert to a values' vector from {:c1 [v1 :type1] :c2 [v2 :type2]} format"
   [values]
   (persistent!
-    (reduce
-      (fn [t [c v]]
-        (conj! t (make-value c v)))
-      (transient []) values)))
+   (reduce
+    (fn [t [c v]]
+      (conj! t (make-value c v)))
+    (transient []) values)))
 
 (defn make-key-value
-  "[:name {:value value :type :type}]"
-  [[k v]]
+  "[:name [value :type]]"
+  [[k value]]
   (let [name# (name k)
-        {:keys [value type]} v]
-    ((get types type) name# value)))
+        [v t] value]
+    ((t types) name# v)))
 
 (defn make-keys
   [keys]
@@ -73,11 +76,11 @@
    (->> result
         .getValues
         (reduce
-          (fn [t [k v]]
-            (assoc! t
-                    (keyword k)
-                    (if with-type
-                      {:value (get-value v) :type (get-type v)}
-                      (get-value v))))
-          (transient {}))
+         (fn [t [k v]]
+           (assoc! t
+                   (keyword k)
+                   (if with-type
+                     [(get-value v) (get-type v)]
+                     (get-value v))))
+         (transient {}))
         persistent!)))
