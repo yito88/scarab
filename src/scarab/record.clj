@@ -17,18 +17,20 @@
    :int     (fn [n v] (IntValue. n v))
    :text    (fn [n v] (TextValue. n v))})
 
-(defn valid-value?
+(defn- assert-value
   [value]
-  (and (= (count value) 2) (keyword? (second value))))
+  (assert (and (= (count value) 2) (keyword? (second value)))
+          "A value should be consist of [val :type]."))
 
-(defn make-value
+(defn- make-value
   [column value]
+  (assert-value value)
   (let [name# (name column)
         [v t] value]
     ((t types) name# v)))
 
 (defn make-values
-  "convert to a values' vector from {:c1 [v1 :type1] :c2 [v2 :type2]} format"
+  "Convert to a values' vector from {:c1 [v1 :type1] :c2 [v2 :type2]} format"
   [values]
   (persistent!
    (reduce
@@ -36,18 +38,19 @@
       (conj! t (make-value c v)))
     (transient []) values)))
 
-(defn make-key-value
-  "[:name [value :type]]"
+(defn- make-key-value
   [[k value]]
+  (assert-value value)
   (let [name# (name k)
         [v t] value]
     ((t types) name# v)))
 
 (defn make-keys
+  "Return com.scalar.database.io.Key object."
   [keys]
   (Key. (map make-key-value keys)))
 
-(defn get-value
+(defn- get-value
   [v]
   (if (instance? TextValue v)
     (let [opt-string (.getString v)]
@@ -56,7 +59,7 @@
         nil))
     (.get v)))
 
-(defn get-type
+(defn- get-type
   [v]
   (cond
     (instance? BigIntValue v)  :bigint
@@ -72,14 +75,14 @@
   ([result]
    (get-record result false))
 
-  ([result with-type]
+  ([result with-type?]
    (->> result
         .getValues
         (reduce
          (fn [t [k v]]
            (assoc! t
                    (keyword k)
-                   (if with-type
+                   (if with-type?
                      [(get-value v) (get-type v)]
                      (get-value v))))
          (transient {}))

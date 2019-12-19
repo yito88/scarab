@@ -5,13 +5,13 @@
 A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
 
 ## Current status
-- Support only `get`, `put` and `delete`
+- Support only `select`, `put` and `delete`
 
 ## Install
 
 Add the following dependency to your `project.clj` file:
 ```clojure
-[scarab "1.0-alpha4"]
+[scarab "1.0-beta1"]
 ```
 
 ## Usage
@@ -39,10 +39,10 @@ Add the following dependency to your `project.clj` file:
                        :ck clustering-keys
                        :values values})
 
-      (st/get storage {:namespace "test"
-                       :table "testtbl"
-                       :pk partition-keys
-                       :ck clustering-keys}))
+      (st/select storage {:namespace "test"
+                          :table "testtbl"
+                          :pk partition-keys
+                          :ck clustering-keys}))
 ```
 
 - First, you need to set up a storage service with properties
@@ -51,12 +51,12 @@ Add the following dependency to your `project.clj` file:
   (st/setup-storage {})
   ```
 
-- You can operate records by `get!`, `put!` and `delete` with storage service
+- You can operate records by `select`, `put` and `delete` with storage service
   ```clojure
-  (st/get storage {:namespace "test"
-                   :table "testtbl"
-                   :pk partition-keys
-                   :ck clustering-keys} ;; :ck is optional
+  (st/select storage {:namespace "test"
+                      :table "testtbl"
+                      :pk partition-keys
+                      :ck clustering-keys} ;; :ck is optional
   (st/put storage {:namespace "test"
                    :table "testtbl"
                    :pk partition-keys
@@ -81,12 +81,12 @@ Add the following dependency to your `project.clj` file:
      :key-name2 [22 :int]}
   ```
 
-- You can specify a consistency level to `get`/`put`/`delete` a record
+- You can specify a consistency level to `select`/`put`/`delete` a record
   ```clojure
-  (st/get storage {:namespace "test"
-                   :table "testtbl"
-                   :pk partition-keys
-                   :cl :eventual}
+  (st/select storage {:namespace "test"
+                      :table "testtbl"
+                      :pk partition-keys
+                      :cl :eventual}
   (st/put storage {:namespace "test"
                    :table "testtbl"
                    :pk partition-keys
@@ -146,10 +146,10 @@ Add the following dependency to your `project.clj` file:
 
 - It is the same as `storage` how to operating records
   ```clojure
-  (t/get tx {:namespace "test"
-             :table "testtbl"
-             :pk partition-keys
-             :ck clustering-keys} ;; :ck is optional
+  (t/select tx {:namespace "test"
+                :table "testtbl"
+                :pk partition-keys
+                :ck clustering-keys} ;; :ck is optional
   (t/put tx {:namespace "test"
              :table "testtbl"
              :pk partition-keys

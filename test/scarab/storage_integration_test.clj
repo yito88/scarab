@@ -14,11 +14,11 @@
   (:require [clojure.test :refer :all]
             [scarab.storage :as st]))
 
-(deftest storage-put-get-test
+(deftest storage-put-select-test
   (let [storage (st/prepare-storage {})
         pk    {:id [1 :int]}
         values  {:val [111 :int]}]
-    (testing "Put and get a record"
+    (testing "Put and select a record"
       (st/put storage {:namespace "testks"
                        :table "testtbl"
                        :pk pk
@@ -29,11 +29,11 @@
              {:id [1 :int]
               :val [111 :int]})))))
 
-(deftest storage-put-delete-get-test
+(deftest storage-put-delete-select-test
   (let [storage (st/prepare-storage {})
         pk    {:id [2 :int]}
         values  {:val [222 :int]}]
-    (testing "Put, delete then get a record"
+    (testing "Put, delete then select a record"
       (st/put storage {:namespace "testks"
                        :table "testtbl"
                        :pk pk
