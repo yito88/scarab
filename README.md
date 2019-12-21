@@ -16,7 +16,7 @@ Add the following dependency to your `project.clj` file:
 
 ## Usage
 
-- You need to create a keyspace and a table for Scalar DB before use
+- You need to create a namespace and a table for Scalar DB before use
   - You can create them easily with [Schema Tools](https://github.com/scalar-labs/scalardb/tree/master/tools/schema)
 
 ### Storage (non transactional operation)

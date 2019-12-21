@@ -5,4 +5,5 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [com.scalar-labs/scalardb "1.2.1"]]
-  :profiles {:dev {:dependencies [[tortue/spy "2.0.0"]]}})
+  :test-selectors {:default (complement :integration)
+                   :integration :integration})
