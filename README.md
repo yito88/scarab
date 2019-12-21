@@ -11,7 +11,7 @@ A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
 
 Add the following dependency to your `project.clj` file:
 ```clojure
-[scarab "1.0-beta1"]
+[scarab "1.0-alpha3"]
 ```
 
 ## Usage
