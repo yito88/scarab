@@ -10,52 +10,45 @@
                                         StorageService)
            (com.google.inject Guice)))
 
-(defn prepare-storage-service
-  "Prepare a StorageService instance"
-  [config]
-  (-> config
-      get-properties
-      DatabaseConfig.
-      StorageModule.
-      vector
-      Guice/createInjector
-      (.getInstance StorageService)))
-
-(def get-storage-service (memoize prepare-storage-service))
+(def storage-service (atom nil))
 
 (defprotocol StorageProto
-  (get! [this namespace table keys]
-        [this namespace table keys cl])
-  (delete! [this namespace table keys]
-           [this namespace table keys cl])
-  (put! [this namespace table keys values]
-        [this namespace table keys values cl]))
+  (select [this param])
+  (delete [this param])
+  (put [this param]))
 
-(defrecord Storage [storage]
+(defrecord Storage [service]
   StorageProto
-  (get! [this namespace table keys]
-    (get! this namespace table keys :eventual))
-
-  (get! [this namespace table keys cl]
-    (let [opt-result (.get (:storage this)
-                           (op/prepare-get namespace table keys cl))]
+  (select [_ param]
+    (let [opt-result (.get @service (op/prepare-get param))]
       (if (.isPresent opt-result)
         (r/get-record (.get opt-result) true)
         nil)))
 
-  (delete! [this namespace table keys]
-    (delete! this namespace table keys :eventual))
+  (delete [_ param]
+    (.delete @service (op/prepare-delete param)))
 
-  (delete! [this namespace table keys cl]
-    (.delete (:storage this)
-          (op/prepare-delete namespace table keys cl)))
+  (put [_ param]
+    (.put @service (op/prepare-put param))))
 
-  (put! [this namespace table keys values]
-    (put! this namespace table keys values :eventual))
+(defn- init-storage-service!
+  [config]
+  (when (nil? @storage-service)
+    (when-let [injector (-> config
+                            get-properties
+                            DatabaseConfig.
+                            StorageModule.
+                            vector
+                            Guice/createInjector)]
+      (try
+        (compare-and-set! storage-service
+                          nil
+                          (.getInstance injector StorageService))
+        (catch Exception e
+          (prn (.getMessages e))))))
+  storage-service)
 
-  (put! [this namespace table keys values cl]
-    (.put (:storage this)
-          (op/prepare-put namespace table keys values cl))))
-
-(defn setup-storage [config]
-  (Storage. (get-storage-service config)))
+(defn prepare-storage
+  "Prepare a Storage instance"
+  [config]
+  (->Storage (init-storage-service! config)))

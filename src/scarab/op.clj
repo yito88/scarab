@@ -17,40 +17,31 @@
   (get consistency-levels cl))
 
 (defn prepare-get
-  ([namespace table keys]
-   (prepare-get namespace table keys :linearizable))
-
-  ([namespace table keys cl]
-   (let [pk  (r/make-keys (first keys))
-         ck  (r/make-keys (second keys))]
-     (-> (Get. pk ck)
-         (.forNamespace namespace)
-         (.forTable table)
-         (.withConsistency (consistency-level cl))))))
+  [{:keys [namespace table pk ck cl] :or {cl :eventual}}]
+  (let [pk  (r/make-keys pk)
+        ck  (r/make-keys ck)]
+    (-> (Get. pk ck)
+        (.forNamespace namespace)
+        (.forTable table)
+        (.withConsistency (consistency-level cl)))))
 
 (defn prepare-delete
-  ([namespace table keys]
-   (prepare-delete namespace table keys :linearizable))
-
-  ([namespace table keys cl]
-   (let [pk  (r/make-keys (first keys))
-         ck  (r/make-keys (second keys))]
-     (-> (Delete. pk ck)
-         (.forNamespace namespace)
-         (.forTable table)
-         (.withConsistency (consistency-level cl))))))
+  [{:keys [namespace table pk ck cl] :or {cl :eventual}}]
+  (let [pk  (r/make-keys pk)
+        ck  (r/make-keys ck)]
+    (-> (Delete. pk ck)
+        (.forNamespace namespace)
+        (.forTable table)
+        (.withConsistency (consistency-level cl)))))
 
 (defn prepare-put
-  ([namespace table keys values]
-   (prepare-put namespace table keys values :linearizable))
-
-  ([namespace table keys values cl]
-   (let [pk     (r/make-keys (first keys))
-         ck     (r/make-keys (second keys))
-         col-vals (r/make-values values)
-         put    (-> (Put. pk ck)
-                    (.forNamespace namespace)
-                    (.forTable table)
-                    (.withConsistency (consistency-level cl)))]
-     (for [v col-vals]
-       (.withValue put v)))))
+  [{:keys [namespace table pk ck values cl] :or {cl :eventual}}]
+  (let [pk     (r/make-keys pk)
+        ck     (r/make-keys ck)
+        col-vals (r/make-values values)
+        put    (-> (Put. pk ck)
+                   (.forNamespace namespace)
+                   (.forTable table)
+                   (.withConsistency (consistency-level cl)))]
+    (for [v col-vals]
+      (.withValue put v))))

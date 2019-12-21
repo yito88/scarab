@@ -5,18 +5,18 @@
 A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
 
 ## Current status
-- Support only `get!`, `put!` and `delete!`
+- Support only `select`, `put` and `delete`
 
 ## Install
 
 Add the following dependency to your `project.clj` file:
 ```clojure
-[scarab "1.0-alpha2"]
+[scarab "1.0-alpha3"]
 ```
 
 ## Usage
 
-- You need to create a keyspace and a table for Scalar DB before use
+- You need to create a namespace and a table for Scalar DB before use
   - You can create them easily with [Schema Tools](https://github.com/scalar-labs/scalardb/tree/master/tools/schema)
 
 ### Storage (non transactional operation)
@@ -25,16 +25,24 @@ Add the following dependency to your `project.clj` file:
 (require '[scarab.core :as c])
 (require '[scarab.storage :as st])
 
-(let [properties (c/create-properties {:nodes "192.168.1.32,192.168.1.23"
-                                       :username "cassandra"
-                                       :password "cassandra"})
-      storage (st/setup-storage properties)
-      keys    [{:id {:value 1 :type :int}}]
-      values  {:val {:value 111 :type :int}}]
+(let [config {:nodes "192.168.1.32,192.168.1.23"
+              :username "cassandra"
+              :password "cassandra"}
+      storage (st/prepare-storage config)
+      partition-keys {:id [1 :int] :name ["XXX" :text]}
+      clustering-keys {:age [11 :int]}
+      values  {:val1 [111 int] :val2 ["value 2" :text]}]
 
-      (st/put! storage "keyspace" "table" keys values)
+      (st/put storage {:namespace "test"
+                       :table "testtbl"
+                       :pk partition-keys
+                       :ck clustering-keys
+                       :values values})
 
-      (st/get! storage "keyspace" "table" keys))
+      (st/select storage {:namespace "test"
+                          :table "testtbl"
+                          :pk partition-keys
+                          :ck clustering-keys}))
 ```
 
 - First, you need to set up a storage service with properties
@@ -43,34 +51,51 @@ Add the following dependency to your `project.clj` file:
   (st/setup-storage {})
   ```
 
-- You can operate records by `get!`, `put!` and `delete` with storage service
+- You can operate records by `select`, `put` and `delete` with storage service
   ```clojure
-  (st/get! storage keyspace table keys)
-  (st/put! storage keyspace table keys values)
-  (st/delete! storage keyspace table keys)
+  (st/select storage {:namespace "test"
+                      :table "testtbl"
+                      :pk partition-keys
+                      :ck clustering-keys} ;; :ck is optional
+  (st/put storage {:namespace "test"
+                   :table "testtbl"
+                   :pk partition-keys
+                   :ck clustering-keys ;; :ck is optional
+                   :values values})
+  (st/delete storage {:namespace "test"
+                      :table "testtbl"
+                      :pk partition-keys
+                      :ck clustering-keys}) ;; :ck is optional
   ```
 
 - Columns are represented as a map
   ```clojure
-    {:column-name1 {:value val1 :type :value-type1}
-     :column-name2 {:value val2 :type :value-type2}}
+    {:column-name1 {val1 :value-type1}
+     :column-name2 {val2 :value-type2}}
   ```
   - `:value-type` supports `:bigint`, `:blob`, `:boolean`, `:double`, `:float`, `int`, and `text`
 
-- `keys` which has partition keys and clustering keys are represented as a vector of maps as below
+- Partition keys and clustering keys are represented as a map
   ```clojure
-    [{:pk1 {:value "partition key 1" :type :text}
-      :pk2 {:value "partition key 2" :type :text}}
-     {:ck1 {:value "clustering key 1" :type :text}
-      :ck2 {:value "22" :type :int}}])
+    {:key-name1 ["partition key 1" :text]
+     :key-name2 [22 :int]}
   ```
-  - The first example has only a partition key
 
-- You can specify a consistency level to `get!`/`put!`/`delete!` a record
+- You can specify a consistency level to `select`/`put`/`delete` a record
   ```clojure
-  (st/get! storage keyspace table keys :sequential)
-  (st/put! storage keyspace table keys values :eventual)
-  (st/delete! storage keyspace table keys :eventual)
+  (st/select storage {:namespace "test"
+                      :table "testtbl"
+                      :pk partition-keys
+                      :cl :eventual}
+  (st/put storage {:namespace "test"
+                   :table "testtbl"
+                   :pk partition-keys
+                   :values values
+                   :cl :sequential})
+  (st/delete storage {:namespace "test"
+                      :table "testtbl"
+                      :pk partition-keys
+                      :cl :sequential})
   ```
   - You can see the detail of consistency level in [Scalar DB](https://scalar-labs.github.io/scalardb/javadoc/com/scalar/database/api/Consistency.html)
 
@@ -80,52 +105,64 @@ Add the following dependency to your `project.clj` file:
 (require '[scarab.core :as c])
 (require '[scarab.transaction :as t])
 
-(let [properties (c/create-properties {:nodes "192.168.1.32,192.168.1.23,192.168.1.11"
-                                       :username "cassandra"
-                                       :password "cassandra"})
-      keyspace "testks"
+(let [config {:nodes "192.168.1.32,192.168.1.23,192.168.1.11"
+              :username "cassandra"
+              :password "cassandra"}
+      namespace "testks"
       table    "tx"
-      tx       (t/setup-transaction properties)
-      keys     [{:id {:value 1 :type :int}}]
-      values   {:val {:value 111 :type :int}}]
+      tx       (t/start-transaction config)
+      partition-key {:id [1 :int]}
+      values   {:val [111 :int]}]
 
-      (t/start! tx)
-      (t/put! tx keyspace table keys values)
-      (t/commit! tx)
+      (t/put tx {:namespace "testks"
+                 :table "tx"
+                 :pk partition-keys
+                 :values values})
+      (t/commit tx)
 
       ; You have to start a new transaction after commit
-      (t/start! tx)
-      (let [cur-val (:value (:val (t/get! tx keyspace table keys)))
-            new-val {:val {:value (+ cur-val 222) :type :int}}]
+      (let [tx (t/start-transaction config)
+            cur-val (first (:val (t/select tx {:namespace "testks"
+                                               :table "tx"
+                                               :pk partition-keys})))
+            new-val {:val [(+ cur-val 222) :int]}]
         ; update
-        (t/put! tx keyspace table keys new-val))
-      (t/commit! tx))
+        (t/put tx {:namespace "testks"
+                   :table "tx"
+                   :pk partition-keys
+                   :values new-val})
+        (t/commit tx))
 ```
 
 - First, you need to set up a transaction service with properties
   ```clojure
-  (t/setup-transaction properties)
+  (t/start-transaction config)
   ```
 
-- Before operating records, you need to `start!` a new transaction
-  ```clojure
-  (t/start! tx)
-  ```
-
-- After operating records, you should `commit!` the transaction to persist updates
+- After operating records, you should `commit` the transaction to persist updates
   ```clojure
   (t/commit! tx)
   ```
 
 - It is the same as `storage` how to operating records
   ```clojure
-  (t/get! tx keyspace table keys)
-  (t/put! tx keyspace table keys values)
-  (t/delete! tx keyspace table keys)
+  (t/select tx {:namespace "test"
+                :table "testtbl"
+                :pk partition-keys
+                :ck clustering-keys} ;; :ck is optional
+  (t/put tx {:namespace "test"
+             :table "testtbl"
+             :pk partition-keys
+             :ck clustering-keys ;; :ck is optional
+             :values values})
+  (t/delete tx {:namespace "test"
+                :table "testtbl"
+                :pk partition-keys
+                :ck clustering-keys}) ;; :ck is optional
   ```
 
 ## License
 
-Copyright © 2018 Yuji Ito
+Copyright © 2019 Yuji Ito
 
 Distributed under the [Eclipse Public License version 1.0](http://www.eclipse.org/legal/epl-v10.html) or [Apache Public License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).

@@ -12,62 +12,52 @@
                                         TransactionService)
            (com.google.inject Guice)))
 
-(defn prepare-transaction-service
-  "Prepare a TransactionService instance"
-  [config]
-  (-> config
-      get-properties
-      DatabaseConfig.
-      TransactionModule.
-      vector
-      Guice/createInjector
-      (.getInstance TransactionService)))
-
-(def get-transaction-service (memoize prepare-transaction-service))
-
-(def init-tx
-  (ref nil))
+(def transaction-service (atom nil))
 
 (defprotocol TransactionProto
-  (start! [this])
-  (commit! [this])
-  (get! [this namespace table keys]
-        [this namespace table keys cl])
-  (delete! [this namespace table keys]
-           [this namespace table keys cl])
-  (put! [this namespace table keys values]
-        [this namespace table keys values cl]))
+  (commit [this])
+  (select [this param])
+  (delete [this param])
+  (put [this param]))
 
-(defrecord Transaction [config tx]
+(defrecord Transaction [tx]
   TransactionProto
-  (start! [this]
-    (dosync
-      (ref-set tx (-> this :config get-transaction-service .start))))
+  (commit [_]
+    (.commit tx))
 
-  (commit! [this]
-    (.commit (deref (:tx this))))
-
-  (get! [this namespace table keys]
-    (get! this namespace table keys :linearizable))
-
-  (get! [this namespace table keys cl]
-    (let [opt-result (.get (deref (:tx this))
-                           (op/prepare-get namespace table keys cl))]
+  (select [_ param]
+    (let [opt-result (.get tx (op/prepare-get param))]
       (if (.isPresent opt-result)
         (r/get-record (.get opt-result) true)
         nil)))
 
-  (delete! [this namespace table keys]
-    (delete! this namespace table keys :linearizable))
+  (delete [_ param]
+    (.delete tx (op/prepare-delete param)))
 
-  (delete! [this namespace table keys cl]
-    (.delete (deref (:tx this)) (op/prepare-delete namespace table keys cl)))
+  (put [_ param]
+    (.put tx (op/prepare-put param))))
 
-  (put! [this namespace table keys values]
-    (put! this namespace table keys values :linearizable))
+(defn- init-transaction-service!
+  [config]
+  (when (nil? @transaction-service)
+    (when-let [injector (-> config
+                            get-properties
+                            DatabaseConfig.
+                            TransactionModule.
+                            vector
+                            Guice/createInjector)]
+      (try
+        (compare-and-set! transaction-service
+                          nil
+                          (.getInstance injector TransactionService))
+        (catch Exception e
+          (prn (.getMessages e))))))
+  transaction-service)
 
-  (put! [this namespace table keys values cl]
-    (.put (deref (:tx this)) (op/prepare-put namespace table keys values cl))))
-
-(defn setup-transaction [config]
-  (Transaction. config init-tx))
+(defn start-transaction
+  "Start a transaction. Return a transaction instance"
+  [config]
+  (->Transaction (-> config
+                     init-transaction-service!
+                     deref
+                     .start)))

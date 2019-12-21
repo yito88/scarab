@@ -19,7 +19,7 @@
     (->> (if-let [password (:password config)]
            password
            "cassandra")
-      (.setProperty props "scalar.database.password"))
+         (.setProperty props "scalar.database.password"))
     props))
 
 (def get-properties (memoize create-properties))
