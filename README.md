@@ -1,4 +1,5 @@
 [![Clojars Project](https://img.shields.io/clojars/v/scarab.svg)](https://clojars.org/scarab)
+![](https://github.com/yito88/scarab/workflows/All%20Tests/badge.svg)
 
 # Scarab
 
@@ -45,10 +46,10 @@ Add the following dependency to your `project.clj` file:
                           :ck clustering-keys}))
 ```
 
-- First, you need to set up a storage service with properties
+- First, you need to get a storage service with properties
   - If you give an empty map as properties, it will be connected to a local server.
   ```clojure
-  (st/setup-storage {})
+  (st/prepare-storage {})
   ```
 
 - You can operate records by `select`, `put` and `delete` with storage service
@@ -141,7 +142,7 @@ Add the following dependency to your `project.clj` file:
 
 - After operating records, you should `commit` the transaction to persist updates
   ```clojure
-  (t/commit! tx)
+  (t/commit tx)
   ```
 
 - It is the same as `storage` how to operating records
