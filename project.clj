@@ -1,4 +1,4 @@
-(defproject scarab "1.0-alpha3"
+(defproject scarab "1.0-alpha4-SNAPSHOT"
   :description "Clojure wrapper of Scalar DB"
   :url "https://github.com/yito88/scarab"
   :license {:name "Eclipse Public License"
