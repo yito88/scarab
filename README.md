@@ -1,5 +1,5 @@
 [![Clojars Project](https://img.shields.io/clojars/v/scarab.svg)](https://clojars.org/scarab)
-![](https://github.com/yito88/scarab/workflows/All%20Tests/badge.svg)
+![](https://github.com/yito88/scarab/workflows/All%20tests/badge.svg)
 
 # Scarab
 
