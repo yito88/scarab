@@ -26,7 +26,7 @@ Add the following dependency to your `project.clj` file:
 (require '[scarab.core :as c])
 (require '[scarab.storage :as st])
 
-(let [config {:nodes "192.168.1.32,192.168.1.23"
+(let [config {:nodes ["192.168.1.30" "192.168.1.31" "192.168.1.32"]
               :username "cassandra"
               :password "cassandra"}
       storage (st/prepare-storage config)

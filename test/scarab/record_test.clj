@@ -1,9 +1,9 @@
 (ns scarab.record-test
   (:require [clojure.test :refer :all]
             [scarab.record :as r])
-  (:import (com.scalar.database.io IntValue
-                                   Key
-                                   TextValue)))
+  (:import (com.scalar.db.io IntValue
+                             Key
+                             TextValue)))
 
 (deftest make-values-test
   (let [col {:c1 [111 :int]

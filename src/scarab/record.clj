@@ -1,12 +1,12 @@
 (ns scarab.record
-  (:import (com.scalar.database.io BigIntValue
-                                   BlobValue
-                                   BooleanValue
-                                   DoubleValue
-                                   FloatValue
-                                   IntValue
-                                   TextValue
-                                   Key)))
+  (:import (com.scalar.db.io BigIntValue
+                             BlobValue
+                             BooleanValue
+                             DoubleValue
+                             FloatValue
+                             IntValue
+                             TextValue
+                             Key)))
 
 (def types
   {:bigint  (fn [n v] (BigIntValue. n v))
@@ -22,7 +22,7 @@
   (assert (and (= (count value) 2) (keyword? (second value)))
           "A value should be consist of [val :type]."))
 
-(defn- make-value
+(defn make-value
   [column value]
   (assert-value value)
   (let [name# (name column)

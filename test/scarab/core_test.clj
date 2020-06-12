@@ -5,11 +5,11 @@
 (deftest create-properties-test-with-empty-map
   (testing "Create properties with a empty map"
     (let [prop (create-properties {})]
-      (is (= (.getProperty prop "scalar.database.contact_points")
+      (is (= (.getProperty prop "scalar.db.contact_points")
              "localhost"))
-      (is (= (.getProperty prop "scalar.database.username")
+      (is (= (.getProperty prop "scalar.db.username")
              "cassandra"))
-      (is (= (.getProperty prop "scalar.database.password")
+      (is (= (.getProperty prop "scalar.db.password")
              "cassandra")))))
 
 (deftest create-properties-test
@@ -18,9 +18,9 @@
                 :password "abcde1234"}]
     (testing "Create properties with a config map"
       (let [prop (create-properties config)]
-        (is (= (.getProperty prop "scalar.database.contact_points")
+        (is (= (.getProperty prop "scalar.db.contact_points")
                "192.168.1.30,192.168.1.31,192.168.1.32"))
-        (is (= (.getProperty prop "scalar.database.username")
+        (is (= (.getProperty prop "scalar.db.username")
                "admin"))
-        (is (= (.getProperty prop "scalar.database.password")
+        (is (= (.getProperty prop "scalar.db.password")
                "abcde1234"))))))

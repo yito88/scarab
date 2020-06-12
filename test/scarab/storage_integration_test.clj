@@ -53,20 +53,20 @@
              nil)))))
 
 (deftest ^:integration storage-put-select-with-ck-test
-(let [storage (st/prepare-storage {})
-      pk {:id [1 :int]}
-      ck {:ver ["version1" :text]}
-      values  {:val [111 :int]}]
-  (testing "Put and select a record with a clustering key"
-    (st/put storage {:namespace "testks"
-                     :table "testtbl2"
-                     :pk pk
-                     :ck ck
-                     :values values})
-    (is (= (st/select storage {:namespace "testks"
-                               :table "testtbl2"
-                               :pk pk
-                               :ck ck})
-           {:id [1 :int]
-            :ver ["version1" :text]
-            :val [111 :int]})))))
+  (let [storage (st/prepare-storage {})
+        pk {:id [1 :int]}
+        ck {:ver ["version1" :text]}
+        values  {:val [111 :int]}]
+    (testing "Put and select a record with a clustering key"
+      (st/put storage {:namespace "testks"
+                       :table "testtbl2"
+                       :pk pk
+                       :ck ck
+                       :values values})
+      (is (= (st/select storage {:namespace "testks"
+                                 :table "testtbl2"
+                                 :pk pk
+                                 :ck ck})
+             {:id [1 :int]
+              :ver ["version1" :text]
+              :val [111 :int]})))))
