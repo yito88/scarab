@@ -17,12 +17,16 @@
                               Scan$Ordering
                               Scan$Ordering$Order)))
 
-(def consistency-levels
+(def ^:private consistency-levels
   {:sequential   Consistency/SEQUENTIAL
    :eventual     Consistency/EVENTUAL
    :linearizable Consistency/LINEARIZABLE})
 
-(def exp-operator
+(def ^:private ordering-order
+  {:asc Scan$Ordering$Order/ASC
+   :desc Scan$Ordering$Order/DESC})
+
+(def ^:private exp-operator
   {:eq ConditionalExpression$Operator/EQ
    :ne ConditionalExpression$Operator/NE
    :gt ConditionalExpression$Operator/GT
@@ -36,7 +40,7 @@
 
 (defn- make-condition-exp
   [column value operator]
-  (ConditionalExpression. column
+  (ConditionalExpression. (name column)
                           (r/make-value column value)
                           (exp-operator operator)))
 
@@ -61,10 +65,8 @@
     (when end-ck
       (.withEnd scan (r/make-keys end-ck) inclusive-end?))
     (when ordering
-      (doseq [[name order] ordering]
-        (->> (Scan$Ordering. name (if (= order :asc)
-                                    Scan$Ordering$Order/ASC
-                                    Scan$Ordering$Order/DESC))
+      (doseq [[k order] ordering]
+        (->> (Scan$Ordering. (name k) (ordering-order order))
              (.withOrdering scan))))
     (when limit
       (.withLimit scan limit))
@@ -101,7 +103,7 @@
     (when-not (nil? if-exists)
       (.withCondition put (if if-exists (PutIfExists.) (PutIfNotExists.))))
     (when-not (nil? condition)
-      (->> (for [[column value operator] condition]
+      (->> (for [[operator column value] condition]
              (make-condition-exp column value operator))
            (into-array ConditionalExpression)
            PutIf.
