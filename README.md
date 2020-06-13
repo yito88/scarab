@@ -1,18 +1,15 @@
 [![Clojars Project](https://img.shields.io/clojars/v/scarab.svg)](https://clojars.org/scarab)
-![](https://github.com/yito88/scarab/workflows/All%20tests/badge.svg)
+[![GitHub Actions](https://github.com/yito88/scarab/workflows/All%20tests/badge.svg)](https://github.com/yito88/scarab/actions)
 
 # Scarab
 
 A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
 
-## Current status
-- Support only `select`, `put` and `delete`
-
 ## Install
 
 Add the following dependency to your `project.clj` file:
 ```clojure
-[scarab "1.0-alpha3"]
+[scarab "1.0.0"]
 ```
 
 ## Usage
@@ -26,7 +23,7 @@ Add the following dependency to your `project.clj` file:
 (require '[scarab.core :as c])
 (require '[scarab.storage :as st])
 
-(let [config {:nodes "192.168.1.32,192.168.1.23"
+(let [config {:nodes ["192.168.1.30" "192.168.1.31" "192.168.1.32"]
               :username "cassandra"
               :password "cassandra"}
       storage (st/prepare-storage config)
@@ -82,12 +79,16 @@ Add the following dependency to your `project.clj` file:
      :key-name2 [22 :int]}
   ```
 
-- You can specify a consistency level to `select`/`put`/`delete` a record
+- You can specify a consistency level to `select`/`scan`/`put`/`delete` a record
   ```clojure
   (st/select storage {:namespace "test"
                       :table "testtbl"
                       :pk partition-keys
-                      :cl :eventual}
+                      :cl :eventual})
+  (st/select storage {:namespace "test"
+                      :table "testtbl"
+                      :pk partition-keys
+                      :cl :eventual})
   (st/put storage {:namespace "test"
                    :table "testtbl"
                    :pk partition-keys
@@ -99,6 +100,67 @@ Add the following dependency to your `project.clj` file:
                       :cl :sequential})
   ```
   - You can see the detail of consistency level in [Scalar DB](https://scalar-labs.github.io/scalardb/javadoc/com/scalar/database/api/Consistency.html)
+
+#### Scan options
+```clojure
+(st/scan storage {:namespace "test"
+                  :table "testtbl"
+                  :pk partition-keys
+                  :start-ck {:ck1 [100 :int]}
+                  :inclusive-start? true
+                  :end-ck {:ck1 [200 :int]}
+                  :inclusive-end? false
+                  :ordering {:ck2 :desc}
+                  :limit 3})
+```
+- `:start-ck`: This option specifies the starting point of the scan. You can specify a clustering key for the point.
+- `:inclusive-start?`: If true, the starting point is included.
+- `:end-ck`: This option specifies the end point of the scan. You can specify a clustering key for the point.
+- `:inclusive-end?`: If true, the end point is included.
+- `:ordering`: This option specifies the ordering (`:asc` or `:desc`) of the specified clustering key.
+- `:limit`: The limit of the number of records. It should be positive.
+
+#### Conditional mutations
+- Insert a new record only if a record with the specified keys doesn't exist
+```clojure
+(st/put storage {:namespace "test"
+                 :table "testtbl"
+                 :pk partition-keys
+                 :ck clustering-keys
+                 :values values
+                 :if-exists false})
+```
+
+- Update a record only if the record with the specified keys exists
+```clojure
+(st/put storage {:namespace "test"
+                 :table "testtbl"
+                 :pk partition-keys
+                 :ck clustering-keys
+                 :values new-values
+                 :if-exists true})
+```
+
+- Update a record only if the record with the specified keys satisfies the given conditions
+```clojure
+(st/put storage {:namespace "test"
+                 :table "testtbl"
+                 :pk partition-keys
+                 :ck clustering-keys
+                 :values new-values
+                 :condition [[:eq :val1 [100 :int]]
+                             [:ne :val2 ["immutable" :text]]]})
+```
+
+- Delete a record only if the record with the specified keys satisfies the given conditions
+```clojure
+(st/delete storage {:namespace "test"
+                    :table "testtbl"
+                    :pk partition-keys
+                    :ck clustering-keys
+                    :condition [[:gt :val1 [100 :int]]
+                                [:lt :val3 [1.0 :double]]]})
+```
 
 ### Transaction
 
@@ -164,6 +226,6 @@ Add the following dependency to your `project.clj` file:
 
 ## License
 
-Copyright © 2019 Yuji Ito
+Copyright © 2019-20 Yuji Ito
 
-Distributed under the [Eclipse Public License version 1.0](http://www.eclipse.org/legal/epl-v10.html) or [Apache Public License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
+Distributed under [Apache Public License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).

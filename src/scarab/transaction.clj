@@ -3,13 +3,13 @@
              [core   :refer :all]
              [op     :as op]
              [record :as r]])
-  (:import (com.scalar.database.api DistributedTransaction
-                                    Isolation
-                                    Result
-                                    TransactionState)
-           (com.scalar.database.config DatabaseConfig)
-           (com.scalar.database.service TransactionModule
-                                        TransactionService)
+  (:import (com.scalar.db.api DistributedTransaction
+                              Isolation
+                              Result
+                              TransactionState)
+           (com.scalar.db.config DatabaseConfig)
+           (com.scalar.db.service TransactionModule
+                                  TransactionService)
            (com.google.inject Guice)))
 
 (def transaction-service (atom nil))

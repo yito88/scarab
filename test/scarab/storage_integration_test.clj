@@ -8,12 +8,13 @@
 
    CREATE TABLE testks.testtbl (
        id INT PARTITIONKEY,
-       val INT,
+       name TEXT,
+       score INT,
    );
 
    CREATE TABLE testks.testtbl2 (
        id INT PARTITIONKEY,
-       ver TEXT CLUSTERINGKEY,
+       ver INT CLUSTERINGKEY,
        val INT,
    );
    ```"
@@ -23,50 +24,66 @@
 (deftest ^:integration storage-put-select-test
   (let [storage (st/prepare-storage {})
         pk {:id [1 :int]}
-        values {:val [111 :int]}]
-    (testing "Put and select a record"
-      (st/put storage {:namespace "testks"
-                       :table "testtbl"
-                       :pk pk
-                       :values values})
-      (is (= (st/select storage {:namespace "testks"
-                                 :table "testtbl"
-                                 :pk pk})
-             {:id [1 :int]
-              :val [111 :int]})))))
-
-(deftest ^:integration storage-put-delete-select-test
-  (let [storage (st/prepare-storage {})
-        pk    {:id [2 :int]}
-        values  {:val [222 :int]}]
-    (testing "Put, delete then select a record"
-      (st/put storage {:namespace "testks"
-                       :table "testtbl"
-                       :pk pk
-                       :values values})
-      (st/delete storage {:namespace "testks"
-                          :table "testtbl"
-                          :pk pk})
-      (is (= (st/select storage {:namespace "testks"
-                                 :table "testtbl"
-                                 :pk pk})
-             nil)))))
-
-(deftest ^:integration storage-put-select-with-ck-test
-(let [storage (st/prepare-storage {})
-      pk {:id [1 :int]}
-      ck {:ver ["version1" :text]}
-      values  {:val [111 :int]}]
-  (testing "Put and select a record with a clustering key"
+        values {:name ["ito" :text]
+                :score [10 :int]}]
     (st/put storage {:namespace "testks"
-                     :table "testtbl2"
+                     :table "testtbl"
                      :pk pk
-                     :ck ck
                      :values values})
     (is (= (st/select storage {:namespace "testks"
-                               :table "testtbl2"
-                               :pk pk
-                               :ck ck})
-           {:id [1 :int]
-            :ver ["version1" :text]
-            :val [111 :int]})))))
+                               :table "testtbl"
+                               :pk pk})
+           {:id [1 :int] :name ["ito" :text] :score [10 :int]}))))
+
+(deftest ^:integration storage-update-delete-test
+  (let [storage (st/prepare-storage {})
+        pk    {:id [2 :int]}]
+    (st/put storage {:namespace "testks"
+                     :table "testtbl"
+                     :pk pk
+                     :values {:name ["ito" :text] :score [10 :int]}
+                     :if-exists false})
+    (is (= (st/select storage {:namespace "testks"
+                               :table "testtbl"
+                               :pk pk})
+           {:id [2 :int] :name ["ito" :text] :score [10 :int]}))
+
+    (st/put storage {:namespace "testks"
+                     :table "testtbl"
+                     :pk pk
+                     :values {:score [11 :int]}
+                     :if-exists true})
+    (is (= (st/select storage {:namespace "testks"
+                               :table "testtbl"
+                               :pk pk})
+           {:id [2 :int] :name ["ito" :text] :score [11 :int]}))
+
+    (st/delete storage {:namespace "testks"
+                        :table "testtbl"
+                        :pk pk
+                        :if-exists true})
+    (is (= (st/select storage {:namespace "testks"
+                               :table "testtbl"
+                               :pk pk})
+           nil))))
+
+(deftest ^:integration storage-scan-test
+  (let [storage (st/prepare-storage {})]
+    (doseq [ver (range 0 10)]
+      (st/put storage {:namespace "testks"
+                       :table "testtbl2"
+                       :pk {:id [1 :int]}
+                       :ck {:ver [ver :int]}
+                       :values {:val [111 :int]}}))
+    (is (= (st/scan storage {:namespace "testks"
+                             :table "testtbl2"
+                             :pk {:id [1 :int]}
+                             :start-ck {:ver [3 :int]}
+                             :inclusive-start? true
+                             :end-ck {:ver [8 :int]}
+                             :inclusive-end? false
+                             :ordering {:ver :desc}
+                             :limit 3})
+           '({:id [1 :int] :ver [7 :int] :val [111 :int]}
+             {:id [1 :int] :ver [6 :int] :val [111 :int]}
+             {:id [1 :int] :ver [5 :int] :val [111 :int]})))))

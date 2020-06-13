@@ -3,17 +3,18 @@
              [core   :refer :all]
              [op     :as op]
              [record :as r]])
-  (:import (com.scalar.database.api DistributedStorage
-                                    Result)
-           (com.scalar.database.config DatabaseConfig)
-           (com.scalar.database.service StorageModule
-                                        StorageService)
+  (:import (com.scalar.db.api DistributedStorage
+                              Result)
+           (com.scalar.db.config DatabaseConfig)
+           (com.scalar.db.service StorageModule
+                                  StorageService)
            (com.google.inject Guice)))
 
 (def storage-service (atom nil))
 
 (defprotocol StorageProto
   (select [this param])
+  (scan [this param])
   (delete [this param])
   (put [this param]))
 
@@ -24,6 +25,10 @@
       (if (.isPresent opt-result)
         (r/get-record (.get opt-result) true)
         nil)))
+
+  (scan [_ param]
+    (let [results (.scan @service (op/prepare-scan param))]
+      (mapv #(r/get-record % true) results)))
 
   (delete [_ param]
     (.delete @service (op/prepare-delete param)))
@@ -45,7 +50,7 @@
                           nil
                           (.getInstance injector StorageService))
         (catch Exception e
-          (prn (.getMessages e))))))
+          (prn (.getMessage e))))))
   storage-service)
 
 (defn prepare-storage
