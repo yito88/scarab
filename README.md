@@ -1,18 +1,15 @@
 [![Clojars Project](https://img.shields.io/clojars/v/scarab.svg)](https://clojars.org/scarab)
-![](https://github.com/yito88/scarab/workflows/All%20tests/badge.svg)
+[![GitHub Actions](https://github.com/yito88/scarab/workflows/All%20tests/badge.svg)](https://github.com/yito88/scarab/actions)
 
 # Scarab
 
 A Clojure wrapper of [Scalar DB](https://github.com/scalar-labs/scalardb)
 
-## Current status
-- Support `select`, `scan`, `put` and `delete`
-
 ## Install
 
 Add the following dependency to your `project.clj` file:
 ```clojure
-[scarab "1.0-alpha3"]
+[scarab "1.0.0"]
 ```
 
 ## Usage
