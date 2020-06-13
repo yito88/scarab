@@ -48,7 +48,7 @@
 (defn make-keys
   "Return com.scalar.database.io.Key object."
   [keys]
-  (Key. (map make-key-value keys)))
+  (if keys (Key. (map make-key-value keys)) nil))
 
 (defn- get-value
   [v]

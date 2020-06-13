@@ -127,32 +127,32 @@ Add the following dependency to your `project.clj` file:
 - Insert a new record only if a record with the specified keys doesn't exist
 ```clojure
 (st/put storage {:namespace "test"
-                  :table "testtbl"
-                  :pk partition-keys
-                  :ck clustering-keys
-                  :values values
-                  :if-exists false})
+                 :table "testtbl"
+                 :pk partition-keys
+                 :ck clustering-keys
+                 :values values
+                 :if-exists false})
 ```
 
 - Update a record only if the record with the specified keys exists
 ```clojure
 (st/put storage {:namespace "test"
-                  :table "testtbl"
-                  :pk partition-keys
-                  :ck clustering-keys
-                  :values new-values
-                  :if-exists true})
+                 :table "testtbl"
+                 :pk partition-keys
+                 :ck clustering-keys
+                 :values new-values
+                 :if-exists true})
 ```
 
 - Update a record only if the record with the specified keys satisfies the given conditions
 ```clojure
 (st/put storage {:namespace "test"
-                  :table "testtbl"
-                  :pk partition-keys
-                  :ck clustering-keys
-                  :values new-values
-                  :condition [[:eq :val1 [100 :int]]
-                              [:ne :val2 ["immutable" :text]]]})
+                 :table "testtbl"
+                 :pk partition-keys
+                 :ck clustering-keys
+                 :values new-values
+                 :condition [[:eq :val1 [100 :int]]
+                             [:ne :val2 ["immutable" :text]]]})
 ```
 
 - Delete a record only if the record with the specified keys satisfies the given conditions
@@ -229,6 +229,6 @@ Add the following dependency to your `project.clj` file:
 
 ## License
 
-Copyright © 2019 Yuji Ito
+Copyright © 2019-20 Yuji Ito
 
-Distributed under the [Eclipse Public License version 1.0](http://www.eclipse.org/legal/epl-v10.html) or [Apache Public License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).
+Distributed under [Apache Public License 2.0](http://www.apache.org/licenses/LICENSE-2.0.html).

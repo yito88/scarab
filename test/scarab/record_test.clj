@@ -9,18 +9,12 @@
   (let [col {:c1 [111 :int]
              :c2 ["test" :text]}
         expected [(IntValue. "c1" 111) (TextValue. "c2" "test")]]
-    (testing "Make values"
-      (is (= (r/make-values col) expected)))
-    (testing "Check invalid values"
-      (is (thrown? java.lang.AssertionError
-                   (r/make-values {:c1 [111]}))))))
+    (is (= expected (r/make-values col)))
+    (is (thrown? java.lang.AssertionError (r/make-values {:c1 [111]})))))
 
 (deftest make-keys-test
-  (let [ks {:k1 [111 :int]
-            :k2 ["test" :text]}
+  (let [ks {:k1 [111 :int] :k2 ["test" :text]}
         expected (Key. [(IntValue. "k1" 111) (TextValue. "k2" "test")])]
-    (testing "Make keys"
-      (is (= (r/make-keys ks) expected)))
-    (testing "Check invalid values"
-      (is (thrown? java.lang.AssertionError
-                   (r/make-values {:k1 [:int]}))))))
+    (is (= expected (r/make-keys ks)))
+    (is (= nil (r/make-keys nil)))
+    (is (thrown? java.lang.AssertionError (r/make-values {:k1 [:int]})))))

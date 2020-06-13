@@ -17,7 +17,7 @@
                               Scan$Ordering
                               Scan$Ordering$Order)))
 
-(def ^:private consistency-levels
+(def ^:private consistency-level
   {:sequential   Consistency/SEQUENTIAL
    :eventual     Consistency/EVENTUAL
    :linearizable Consistency/LINEARIZABLE})
@@ -34,10 +34,6 @@
    :lt ConditionalExpression$Operator/LT
    :lte ConditionalExpression$Operator/LTE})
 
-(defn consistency-level
-  [cl]
-  (get consistency-levels cl))
-
 (defn- make-condition-exp
   [column value operator]
   (ConditionalExpression. (name column)
@@ -45,7 +41,7 @@
                           (exp-operator operator)))
 
 (defn prepare-get
-  [{:keys [namespace table pk ck cl] :or {cl :eventual}}]
+  [{:keys [namespace table pk ck cl] :or {cl :sequential}}]
   (let [pk  (r/make-keys pk)
         ck  (r/make-keys ck)]
     (-> (Get. pk ck)
@@ -57,7 +53,7 @@
   [{:keys [namespace table pk start-ck end-ck
            inclusive-start? inclusive-end?
            ordering limit cl]
-    :or {inclusive-start? true inclusive-end? true cl :eventual}}]
+    :or {inclusive-start? true inclusive-end? true cl :sequential}}]
   (let [pk  (r/make-keys pk)
         scan (-> (Scan. pk) (.forNamespace namespace) (.forTable table))]
     (when start-ck
@@ -73,7 +69,8 @@
     (.withConsistency scan (consistency-level cl))))
 
 (defn prepare-delete
-  [{:keys [namespace table pk ck if-exists condition cl] :or {cl :eventual}}]
+  [{:keys [namespace table pk ck if-exists condition cl]
+    :or {cl :sequential}}]
   (let [pk  (r/make-keys pk)
         ck  (r/make-keys ck)
         delete (-> (Delete. pk ck)
@@ -83,7 +80,7 @@
     (when if-exists
       (.withCondition delete (DeleteIfExists.)))
     (when-not (nil? condition)
-      (->> (for [[column value operator] condition]
+      (->> (for [[operator column value] condition]
              (make-condition-exp column value operator))
            (into-array ConditionalExpression)
            DeleteIf.
@@ -92,7 +89,7 @@
 
 (defn prepare-put
   [{:keys [namespace table pk ck values if-exists condition cl]
-    :or {cl :eventual}}]
+    :or {cl :sequential}}]
   (let [pk     (r/make-keys pk)
         ck     (r/make-keys ck)
         col-vals (r/make-values values)
@@ -108,5 +105,4 @@
            (into-array ConditionalExpression)
            PutIf.
            (.withCondition put)))
-    (for [v col-vals]
-      (.withValue put v))))
+    (.withValues put col-vals)))
