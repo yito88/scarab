@@ -1,4 +1,4 @@
-(defproject scarab "1.0.1-SNAPSHOT"
+(defproject scarab "1.1.0"
   :description "Clojure wrapper of Scalar DB"
   :url "https://github.com/yito88/scarab"
   :license {:name "Apache License 2.0"
