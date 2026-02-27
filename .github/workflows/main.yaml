@@ -97,6 +97,6 @@ jobs:
           ghcr.io/scalar-labs/scalardb-schema-loader:3.17.1 \
           --config /scalardb/schema/database.properties \
           --schema-file /scalardb/schema/schema.json \
-          --coordinator true
+          --coordinator
     - name: Run integration tests
       run: lein test :integration
