@@ -18,12 +18,15 @@
   );
   ```"
   (:require [clojure.test :refer :all]
+            [scarab.integration-config :as ic]
             [scarab.transaction :as t]))
+
+(def ^:private config (ic/integration-config))
 
 (deftest ^:integration transaction-put-select-test
   (let [pk   {:id [1 :int]}
         values {:val [111 :int]}]
-    (let [tx (t/start-transaction {})]
+    (let [tx (t/start-transaction config)]
       (t/put tx {:namespace "testks"
                  :table "tx"
                  :pk pk
@@ -31,7 +34,7 @@
       (t/commit tx))
 
       ; start a new transaction
-    (let [tx (t/start-transaction {})
+    (let [tx (t/start-transaction config)
           r (t/select tx {:namespace "testks"
                           :table "tx"
                           :pk pk})]
@@ -43,7 +46,7 @@
 (deftest ^:integration transaction-put-delete-get-test
   (let [pk {:id [2 :int]}
         values {:val [222 :int]}]
-    (let [tx (t/start-transaction {})]
+    (let [tx (t/start-transaction config)]
       (t/put tx {:namespace "testks"
                  :table "tx"
                  :pk pk
@@ -51,7 +54,7 @@
       (t/commit tx))
 
       ; start a new transaction
-    (let [tx (t/start-transaction {})]
+    (let [tx (t/start-transaction config)]
         ; read a record for the following delete
       (t/select tx {:namespace "testks"
                     :table "tx"
@@ -62,7 +65,7 @@
       (t/commit tx))
 
       ; start a new transaction
-    (let [tx (t/start-transaction {})]
+    (let [tx (t/start-transaction config)]
       (is (= (t/select tx {:namespace "testks"
                            :table "tx"
                            :pk pk}) nil)))))
@@ -71,7 +74,7 @@
   (let [pk   {:id [1 :int]}
         ck {:ver ["version1" :text]}
         values {:val [111 :int]}]
-    (let [tx (t/start-transaction {})]
+    (let [tx (t/start-transaction config)]
       (t/put tx {:namespace "testks"
                  :table "tx2"
                  :pk pk
@@ -80,7 +83,7 @@
       (t/commit tx))
 
       ; start a new transaction
-    (let [tx (t/start-transaction {})
+    (let [tx (t/start-transaction config)
           r (t/select tx {:namespace "testks"
                           :table "tx2"
                           :pk pk

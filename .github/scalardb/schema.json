@@ -1,0 +1,53 @@
+{
+  "testks.testtbl": {
+    "transaction": false,
+    "partition-key": [
+      "id"
+    ],
+    "clustering-key": [],
+    "columns": {
+      "id": "INT",
+      "name": "TEXT",
+      "score": "INT"
+    }
+  },
+  "testks.testtbl2": {
+    "transaction": false,
+    "partition-key": [
+      "id"
+    ],
+    "clustering-key": [
+      "ver"
+    ],
+    "columns": {
+      "id": "INT",
+      "ver": "INT",
+      "val": "INT"
+    }
+  },
+  "testks.tx": {
+    "transaction": true,
+    "partition-key": [
+      "id"
+    ],
+    "clustering-key": [],
+    "columns": {
+      "id": "INT",
+      "val": "INT"
+    }
+  },
+  "testks.tx2": {
+    "transaction": true,
+    "partition-key": [
+      "id"
+    ],
+    "clustering-key": [
+      "ver"
+    ],
+    "columns": {
+      "id": "INT",
+      "ver": "TEXT",
+      "val": "INT"
+    }
+  }
+}

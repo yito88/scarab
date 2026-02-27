@@ -4,6 +4,6 @@
   :license {:name "Apache License 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.10.1"]
-                 [com.scalar-labs/scalardb "2.1.0"]]
+                 [com.scalar-labs/scalardb "3.17.1"]]
   :test-selectors {:default (complement :integration)
                    :integration :integration})
