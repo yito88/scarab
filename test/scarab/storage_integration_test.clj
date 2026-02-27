@@ -17,12 +17,15 @@
        ver INT CLUSTERINGKEY,
        val INT,
    );
-   ```"
+  ```"
   (:require [clojure.test :refer :all]
+            [scarab.integration-config :as ic]
             [scarab.storage :as st]))
 
+(def ^:private config (ic/integration-config))
+
 (deftest ^:integration storage-put-select-test
-  (let [storage (st/prepare-storage {})
+  (let [storage (st/prepare-storage config)
         pk {:id [1 :int]}
         values {:name ["ito" :text]
                 :score [10 :int]}]
@@ -36,7 +39,7 @@
            {:id [1 :int] :name ["ito" :text] :score [10 :int]}))))
 
 (deftest ^:integration storage-update-delete-test
-  (let [storage (st/prepare-storage {})
+  (let [storage (st/prepare-storage config)
         pk    {:id [2 :int]}]
     (st/put storage {:namespace "testks"
                      :table "testtbl"
@@ -68,7 +71,7 @@
            nil))))
 
 (deftest ^:integration storage-scan-test
-  (let [storage (st/prepare-storage {})]
+  (let [storage (st/prepare-storage config)]
     (doseq [ver (range 0 10)]
       (st/put storage {:namespace "testks"
                        :table "testtbl2"
