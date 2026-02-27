@@ -13,16 +13,8 @@
 (def transaction-service (atom nil))
 (def two-phase-transaction-service (atom nil))
 
-(defprotocol TransactionProto
-  (commit [this])
-  (select [this param])
-  (delete [this param])
-  (put [this param]))
-
-(defprotocol TwoPhaseTransactionProto
+(defprotocol BaseTransactionProto
   (id [this])
-  (prepare [this])
-  (validate [this])
   (commit [this])
   (rollback [this])
   (abort [this])
@@ -30,33 +22,14 @@
   (delete [this param])
   (put [this param]))
 
+(defprotocol TwoPhaseTransactionProto
+  (prepare [this])
+  (validate [this]))
+
 (defrecord Transaction [tx]
-  TransactionProto
-  (commit [_]
-    (.commit tx))
-
-  (select [_ param]
-    (let [opt-result (.get tx (op/prepare-get param))]
-      (if (.isPresent opt-result)
-        (r/get-record (.get opt-result) true)
-        nil)))
-
-  (delete [_ param]
-    (.delete tx (op/prepare-delete param)))
-
-  (put [_ param]
-    (.put tx (op/prepare-put param))))
-
-(defrecord TwoPhaseTransaction [tx]
-  TwoPhaseTransactionProto
+  BaseTransactionProto
   (id [_]
     (.getId tx))
-
-  (prepare [_]
-    (.prepare tx))
-
-  (validate [_]
-    (.validate tx))
 
   (commit [_]
     (.commit tx))
@@ -78,6 +51,39 @@
 
   (put [_ param]
     (.put tx (op/prepare-put param))))
+
+(defrecord TwoPhaseTransaction [tx]
+  BaseTransactionProto
+  TwoPhaseTransactionProto
+  (id [_]
+    (.getId tx))
+
+  (commit [_]
+    (.commit tx))
+
+  (rollback [_]
+    (.rollback tx))
+
+  (abort [_]
+    (.abort tx))
+
+  (select [_ param]
+    (let [opt-result (.get tx (op/prepare-get param))]
+      (if (.isPresent opt-result)
+        (r/get-record (.get opt-result) true)
+        nil)))
+
+  (delete [_ param]
+    (.delete tx (op/prepare-delete param)))
+
+  (put [_ param]
+    (.put tx (op/prepare-put param)))
+
+  (prepare [_]
+    (.prepare tx))
+
+  (validate [_]
+    (.validate tx)))
 
 (defn- init-transaction-service!
   [config]
