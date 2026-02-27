@@ -224,6 +224,28 @@ Add the following dependency to your `project.clj` file:
                 :ck clustering-keys}) ;; :ck is optional
   ```
 
+### 2PC Transaction
+
+```clojure
+(require '[scarab.transaction :as t])
+
+(let [tx (t/start-two-phase-transaction config)
+      pk {:id [1 :int]}]
+  (t/put tx {:namespace "testks"
+             :table "tx"
+             :pk pk
+             :values {:val [100 :int]}})
+  (t/prepare tx)
+  (t/validate tx)
+  (t/commit tx))
+```
+
+- You can get the transaction id with `(t/id tx)`.
+- You can join or resume an existing 2PC transaction:
+  - `(t/join-two-phase-transaction config tx-id)`
+  - `(t/resume-two-phase-transaction config tx-id)`
+- You can cancel a transaction with `(t/rollback tx)` or `(t/abort tx)`.
+
 ## License
 
 Copyright © 2019-20 Yuji Ito
